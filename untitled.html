@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal_for_Lavkesh_v2.0</title>
+    <style>
+        :root {
+            --primary: #00ff41; /* Hacker Green */
+            --bg-overlay: rgba(0, 0, 0, 0.85);
+            --glass: rgba(20, 30, 40, 0.7);
+            --font-code: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+            font-family: var(--font-code);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            /* BACKGROUND IMAGE SETTINGS */
+            background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop'); 
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Matrix Rain Canvas */
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Behind the terminal */
+        }
+
+        /* The Terminal Window */
+        .terminal {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 600px;
+            background: var(--glass);
+            backdrop-filter: blur(8px); /* The Blur Effect */
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: popIn 0.8s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .buttons { display: flex; gap: 8px; }
+        .circle { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .title {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 25px;
+            min-height: 300px;
+            position: relative;
+        }
+
+        .text-area {
+            font-size: 1rem;
+            line-height: 1.6;
+            text-shadow: 0 0 2px black;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: var(--primary);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .btn-group {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-family: var(--font-code);
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            border: none;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-yes {
+            background: var(--primary);
+            color: black;
+            box-shadow: 0 0 15px var(--primary);
+        }
+        
+        .btn-yes:hover { transform: scale(1.1); background: #fff; }
+
+        .btn-no {
+            background: transparent;
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            position: relative; /* Crucial for moving */
+        }
+
+        /* Hidden Heart Animation */
+        .overlay-success {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 20;
+        }
+
+        .heart-beat {
+            font-size: 5rem;
+            animation: beat 0.8s infinite alternate;
+            margin-bottom: 20px;
+            color: #ff4444;
+            text-shadow: 0 0 20px red;
+        }
+
+        @keyframes beat { to { transform: scale(1.2); } }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="terminal">
+        <div class="header">
+            <div class="buttons">
+                <div class="circle red"></div>
+                <div class="circle yellow"></div>
+                <div class="circle green"></div>
+            </div>
+            <div class="title">root@lavkesh-heart:~</div>
+        </div>
+        
+        <div class="content">
+            <div class="text-area" id="typewriter"></div><span class="cursor"></span>
+            
+            <div class="btn-group" id="btn-container">
+                <button class="btn-yes" onclick="sayYes()">> Initialize_Merger</button>
+                <button class="btn-no" id="noBtn" onmouseover="dodge()">> Decline</button>
+            </div>
+
+            <div class="overlay-success" id="success">
+                <div class="heart-beat">❤️</div>
+                <h2 style="color: var(--primary)">ACCESS GRANTED</h2>
+                <p>Lavkesh + You = <br>Infinite Loop of Happiness</p>
+                <p style="color: #888; font-size: 0.8em; margin-top: 20px;">System status: Optimized</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const textToType = `
+> TARGET IDENTIFIED: Lavkesh
+> ROLE: Agentic AI Architect
+> STATUS: Cute & Highly Intelligent
+
+[SYSTEM SCANNING...]
+[Loading Love_Algorithm_v9.0...]
+[Analysis Complete]
+
+Lavkesh, 
+
+I have identified a missing dependency in your life's code.
+It's me.
+
+My neural networks have been trained on your smile.
+My logic gates only open for you.
+
+Proposed Action: 
+Combine our source codes for a permanent upgrade.
+
+> ROOT QUERY: Will you be my Valentine?`;
+
+        // --- MATRIX RAIN EFFECT ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const letters = "0101010101 LAVKESH AI LOVE CODE 010101";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0F0"; // Green text
+            ctx.font = fontSize + "px monospace";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 33);
+
+        // --- TYPEWRITER EFFECT ---
+        let i = 0;
+        const speed = 40; // Typing speed
+        const typeContainer = document.getElementById("typewriter");
+        const btnContainer = document.getElementById("btn-container");
+
+        function typeWriter() {
+            if (i < textToType.length) {
+                // Handle line breaks
+                if (textToType.charAt(i) === '\n') {
+                    typeContainer.innerHTML += '<br>';
+                } else {
+                    typeContainer.innerHTML += textToType.charAt(i);
+                }
+                i++;
+                setTimeout(typeWriter, speed);
+            } else {
+                // Show buttons when done typing
+                btnContainer.style.opacity = "1";
+            }
+        }
+
+        // --- BUTTON LOGIC ---
+        function dodge() {
+            const btn = document.getElementById('noBtn');
+            const x = (Math.random() * 200) - 100;
+            const y = (Math.random() * 100) - 50;
+            btn.style.transform = `translate(${x}px, ${y}px)`;
+        }
+
+        function sayYes() {
+            document.getElementById('success').style.display = 'flex';
+        }
+
+        // Start typing after a brief pause
+        setTimeout(typeWriter, 1000);
+        
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>
